@@ -50,12 +50,12 @@ describe('Test', function () {
                 });
             });
             it('should throw validation error is required', function (done) {
-                const options = {};
+                const options = {job:{}};
                 const producer = new Producer(options);
                 producer.createJob(options).catch((error) => {
                     expect(error.message).to.equal('instance.job.type is required');
                     done();
-                });
+                });                 
             });
         });
         describe('CreateJob', function () {
