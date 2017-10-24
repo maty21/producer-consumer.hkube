@@ -108,7 +108,7 @@ describe('Test', function () {
                 consumer.register(options);
                 producer.createJob(options);
             });
-            xit('should create job fire event job-active', function (done) {
+            it('should create job fire event job-active', function (done) {
                 const options = {
                     job: {
                         type: 'test-job-job-event-active',
@@ -143,7 +143,7 @@ describe('Test', function () {
                 expect(data.jobID).to.be.a('string');
                 expect(data.result).to.deep.equal(res);
             });
-            xit('should create job and reject on timeout', function (done) {
+            it('should create job and reject on timeout', function (done) {
                 this.timeout(5000);
                 let job = null;
                 const res = { success: true };
@@ -238,6 +238,42 @@ describe('Test', function () {
                     expect(job).to.have.property('type');
                     expect(job).to.have.property('key');
                     expect(job).to.have.property('done');
+                    done();
+                });
+                consumer.register(options);
+                await producer.createJob(options);
+            });
+        });
+        describe('PauseJob', function () {
+            it('should consume a job with properties', async function () {
+                const options = {
+                    job: {
+                        type: 'test-job-pause',
+                        data: { action: 'bla' }
+                    }
+                }
+                const producer = new Producer(options);
+                const consumer = new Consumer(options);
+                consumer.on('job', (job) => {
+                    consumer.pause();
+                    done();
+                });
+                consumer.register(options);
+                await producer.createJob(options);
+            });
+        });
+        describe('ResumeJob', function () {
+            it('should consume a job with properties', async function () {
+                const options = {
+                    job: {
+                        type: 'test-job-resume',
+                        data: { action: 'bla' }
+                    }
+                }
+                const producer = new Producer(options);
+                const consumer = new Consumer(options);
+                consumer.on('job', (job) => {
+                    consumer.resume();
                     done();
                 });
                 consumer.register(options);
