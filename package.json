@@ -1,6 +1,6 @@
 {
   "name": "producer-consumer.rf",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "producer consumer message queue based on Redis",
   "main": "index.js",
   "directories": {
