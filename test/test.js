@@ -4,7 +4,7 @@ const { Producer, Consumer } = require('../index');
 const Queue = require('bull');
 
 const redisHost = process.env.REDIS_CLUSTER_SERVICE_HOST || '127.0.0.1';
-const redisPort = process.env.REDIS_CLUSTER_SERVICE_PORT || 6379;
+const redisPort = process.env.REDIS_CLUSTER_SERVICE_PORT || "6379";
 const useCluster = process.env.REDIS_CLUSTER_SERVICE_HOST ? true : false;
 const redisConfig = { host: redisHost, port: redisPort, cluster: useCluster };
 
@@ -26,7 +26,7 @@ const globalOptions = {
         prefix: 'sf-jobs',
         redis: {
             host: '127.0.0.1',
-            port: 6379,
+            port: "6379",
             cluster: true,
             sentinel: false
         }
@@ -50,12 +50,12 @@ describe('Test', function () {
                 });
             });
             it('should throw validation error is required', function (done) {
-                const options = {job:{}};
+                const options = { job: {} };
                 const producer = new Producer(options);
                 producer.createJob(options).catch((error) => {
                     expect(error.message).to.equal('instance.job.type is required');
                     done();
-                });                 
+                });
             });
         });
         describe('CreateJob', function () {
@@ -71,6 +71,14 @@ describe('Test', function () {
                     job: {
                         type: 'test-job-job-event-failed',
                         data: { action: 'bla' }
+                    },
+                    setting: {
+                        redis: {
+                            host: '127.0.0.1',
+                            port: "6379",
+                            cluster: true,
+                            sentinel: false
+                        }
                     }
                 }
                 const producer = new Producer(options);
