@@ -1,5 +1,5 @@
 {
-  "name": "producer-consumer.rf",
+  "name": "producer-consumer.hkube",
   "version": "1.0.9",
   "description": "producer consumer message queue based on Redis.",
   "main": "index.js",
