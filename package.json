@@ -1,6 +1,6 @@
 {
   "name": "producer-consumer.hkube",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "description": "producer consumer message queue based on Redis.",
   "main": "index.js",
   "directories": {
