@@ -60,7 +60,6 @@ const schema = {
             "properties": {
                 "type": {
                     "type": "string",
-                    "required": true,
                     "description": "the job type"
                 },
                 "waitingTimeout": {

@@ -45,7 +45,7 @@ describe('Test', function () {
                 };
                 const producer = new Producer(options);
                 producer.createJob(options).catch((error) => {
-                    expect(error.message).to.equal('instance.job.waitingTimeout is not of a type(s) integer');
+                    expect(error.message).to.equal('data.job.waitingTimeout should be integer');
                     done();
                 });
             });
@@ -53,7 +53,7 @@ describe('Test', function () {
                 const options = { job: {} };
                 const producer = new Producer(options);
                 producer.createJob(options).catch((error) => {
-                    expect(error.message).to.equal('instance.job.type is required');
+                    expect(error.message).to.equal("data.job should have required property 'type'");
                     done();
                 });
             });
@@ -227,7 +227,7 @@ describe('Test', function () {
                     }
                 };
                 const func = () => new Consumer(options)
-                expect(func).to.throw(Error, 'instance.prefix is not of a type(s) string');
+                expect(func).to.throw(Error, 'data.prefix should be string');
             });
         });
         describe('ConsumeJob', function () {
