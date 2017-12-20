@@ -117,6 +117,7 @@ describe('Test', function () {
                 producer.createJob(options);
             });
             it('should create job fire event job-active', function (done) {
+                this.timeout(5000);
                 const options = {
                     job: {
                         type: 'test-job-job-event-active',
@@ -170,7 +171,7 @@ describe('Test', function () {
                 producer.createJob(options).catch(error => {
                     expect(error.message).to.have.string('job-waiting-timeout');
                     done();
-                });
+                }); 
             });
             it('should create two differnt jobs', async function () {
                 const options1 = {
