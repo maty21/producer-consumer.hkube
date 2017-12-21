@@ -10,7 +10,7 @@ const redisConfig = { host: redisHost, port: redisPort, cluster: useCluster };
 
 const { tracer } = require('@hkube/metrics')
 const { InMemoryReporter, ConstSampler, RemoteReporter } = require('jaeger-client');
-
+const opentracing = require('opentracing')
 const globalOptions = {
     job: {
         type: 'test-job-global',
@@ -49,7 +49,7 @@ describe('Tracing', () => {
             done();
         }
     });
-    it('should work without tracing', () => {
+    it('should work without tracing', (done) => {
         let job = null;
         const res = { success: true };
         const options = {
@@ -96,21 +96,24 @@ describe('Tracing', () => {
                 tracer
             }
         }
-        const producer = new Producer(options);
-        producer.on('job-completed', (data) => {
-            expect(data.jobID).to.be.a('string');
-            expect(data.result).to.deep.equal(res);
-            expect(job.data.spanId).to.not.be.empty
-            expect(tracer._tracer._reporter.spans).to.have.lengthOf(1);
-            done();
+        return new Promise((resolve, reject) => {
+            const producer = new Producer(options);
+            producer.on('job-completed', (data) => {
+                expect(data.jobID).to.be.a('string');
+                expect(data.result).to.deep.equal(res);
+                expect(data.options.data.spanId).to.not.be.empty
+                expect(tracer._tracer._reporter.spans).to.have.lengthOf(1);
+                resolve();
+            });
+            const consumer = new Consumer(options);
+            consumer.on('job', (job) => {
+                expect(job.data.spanId).to.not.be.empty
+                job.done(null, res);
+            });
+            consumer.register(options);
+            producer.createJob(options);
         });
-        const consumer = new Consumer(options);
-        consumer.on('job', (job) => {
-            expect(job.data.spanId).to.not.be.empty
-            job.done(null, res);
-        });
-        consumer.register(options);
-        producer.createJob(options);
+        
     });
 
     it('should work with job-failed', async () => {
@@ -137,22 +140,26 @@ describe('Tracing', () => {
                 tracer
             }
         }
-        const producer = new Producer(options);
-        producer.on('job-failed', (data) => {
-            expect(data.jobID).to.be.a('string');
-            expect(data.error).to.equal('Nooooooo!!!!!');
-            expect(job.data.spanId).to.not.be.empty
-            expect(tracer._tracer._reporter.spans).to.have.lengthOf(1);
-            expect(tracer._tracer._reporter.spans[0]._tags).to.deep.include({ key: opentracing.Error, value: true });
-            expect(tracer._tracer._reporter.spans[0]._tags).to.deep.include({ key: 'errorMessage', value: 'Nooooooo!!!!!' });
-            done();
+
+        return new Promise((resolve, reject) => {
+            const producer = new Producer(options);
+            producer.on('job-failed', (data) => {
+                expect(data.jobID).to.be.a('string');
+                expect(data.error).to.equal('Nooooooo!!!!!');
+                expect(data.options.data.spanId).to.not.be.empty
+                expect(tracer._tracer._reporter.spans).to.have.lengthOf(1);
+                expect(tracer._tracer._reporter.spans[0]._tags).to.deep.include({ key: opentracing.Error, value: true });
+                expect(tracer._tracer._reporter.spans[0]._tags).to.deep.include({ key: 'errorMessage', value: 'Nooooooo!!!!!' });
+                resolve();
+            });
+            const consumer = new Consumer(options);
+            consumer.on('job', (job) => {
+                expect(job.data.spanId).to.not.be.empty
+                job.done(new Error('Nooooooo!!!!!'));
+            });
+            consumer.register(options);
+            producer.createJob(options);
         });
-        const consumer = new Consumer(options);
-        consumer.on('job', (job) => {
-            expect(job.data.spanId).to.not.be.empty
-            job.done(new Error('Nooooooo!!!!!'));
-        });
-        consumer.register(options);
-        producer.createJob(options);
+        
     });
 });
