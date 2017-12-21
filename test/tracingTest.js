@@ -72,7 +72,7 @@ describe('Tracing', () => {
         producer.createJob(options);
     });
 
-    it('should work with tracing', async () => {
+    it('should work with job-completed', async () => {
         await tracer.init({
             tracerConfig: {
                 serviceName: 'test',
@@ -101,12 +101,56 @@ describe('Tracing', () => {
             expect(data.jobID).to.be.a('string');
             expect(data.result).to.deep.equal(res);
             expect(job.data.spanId).to.not.be.empty
+            expect(tracer._tracer._reporter.spans).to.have.lengthOf(1);
             done();
         });
         const consumer = new Consumer(options);
         consumer.on('job', (job) => {
             expect(job.data.spanId).to.not.be.empty
             job.done(null, res);
+        });
+        consumer.register(options);
+        producer.createJob(options);
+    });
+
+    it('should work with job-failed', async () => {
+        await tracer.init({
+            tracerConfig: {
+                serviceName: 'test',
+            },
+            tracerOptions: {
+                reporter: new InMemoryReporter()
+            }
+
+        });
+        let job = null;
+        const res = { success: true };
+        const options = {
+            job: {
+                type: 'tracing-test-3',
+                data: { action: 'bla' },
+            },
+            tracing: {
+
+            },
+            setting: {
+                tracer
+            }
+        }
+        const producer = new Producer(options);
+        producer.on('job-failed', (data) => {
+            expect(data.jobID).to.be.a('string');
+            expect(data.error).to.equal('Nooooooo!!!!!');
+            expect(job.data.spanId).to.not.be.empty
+            expect(tracer._tracer._reporter.spans).to.have.lengthOf(1);
+            expect(tracer._tracer._reporter.spans[0]._tags).to.deep.include({ key: opentracing.Error, value: true });
+            expect(tracer._tracer._reporter.spans[0]._tags).to.deep.include({ key: 'errorMessage', value: 'Nooooooo!!!!!' });
+            done();
+        });
+        const consumer = new Consumer(options);
+        consumer.on('job', (job) => {
+            expect(job.data.spanId).to.not.be.empty
+            job.done(new Error('Nooooooo!!!!!'));
         });
         consumer.register(options);
         producer.createJob(options);
