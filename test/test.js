@@ -36,6 +36,14 @@ const globalOptions = {
 describe('Test', function () {
     describe('Producer', function () {
         describe('Validation', function () {
+            it('should throw validation error is no options', function () {
+                const options = {
+                    setting:{
+                        prefix:1
+                    }
+                };
+                expect(()=>new Producer(options)).to.throw('data.prefix should be string');
+            });
             it('should throw validation error is not typeof', function (done) {
                 const options = {
                     job: {
@@ -133,6 +141,53 @@ describe('Test', function () {
                 consumer.register(options);
                 producer.createJob(options);
             });
+            it('should create job fire event job-active (resolveOnStart)', function (done) {
+                this.timeout(5000);
+                const options = {
+                    job: {
+                        type: 'test-job-job-event-active-resolveOnStart',
+                        data: { action: 'bla' },
+                        resolveOnStart:true
+                    }
+                }
+                const producer = new Producer(options);
+                let activeFlag=false;
+                producer.on('job-active', (data) => {
+                    expect(data.jobID).to.be.a('string');
+                    activeFlag=true;
+                });
+                const consumer = new Consumer(options);
+                consumer.register(options);
+                producer.createJob(options).then((data)=>{
+                    expect(data.jobID).to.be.a('string');
+                    expect(activeFlag).to.be.true;
+                    done();
+                });
+            });
+            it('should create job fire event job-waiting (resolveOnWaiting)', function (done) {
+                this.timeout(5000);
+                const options = {
+                    job: {
+                        type: 'test-job-job-event-active-resolveOnStart',
+                        data: { action: 'bla' },
+                        resolveOnWaiting:true
+                    }
+                }
+                const producer = new Producer(options);
+                let activeFlag=false;
+                producer.on('job-waiting', (data) => {
+                    expect(data.jobID).to.be.a('string');
+                    activeFlag=true;
+                });
+                const consumer = new Consumer(options);
+                consumer.register(options);
+                producer.createJob(options).then((data)=>{
+                    expect(data.jobID).to.be.a('string');
+                    expect(activeFlag).to.be.true;
+                    done();
+                });
+            });
+
             it('should create job and resolve on completed', async function () {
                 const res = { success: true };
                 const options = {

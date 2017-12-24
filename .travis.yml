@@ -1,0 +1,35 @@
+sudo: required
+language: node_js
+node_js:
+- '8'
+services:
+- docker
+branches:
+  only:
+  - master
+install:
+- npm install
+- npm install -g snyk
+- snyk test
+cache:
+  directories:
+  - node_modules
+script:
+- NODE_ENV=test npm run-script test-travis
+after_script: cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js
+after_success:
+- git config --global user.email "travis@travis-ci.org"
+- git config --global user.name "Travis CI"
+- git remote set-url --push origin "https://${GH_TOKEN}@github.com/${TRAVIS_REPO_SLUG}.git"
+- git remote -v
+- git checkout -f -b version-branch
+- npm version patch -m "$(git log -1 --pretty=%B) .... bump version [skip ci]"
+- git push origin version-branch:master --follow-tags
+- snyk monitor
+deploy:
+  skip_cleanup: true
+  provider: npm
+  email: yehiyam@gmail.com
+  api_key: "$NPM_AUTH_TOKEN"
+  on:
+    branch: master
